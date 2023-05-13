@@ -23,32 +23,34 @@ score1 = 0
 score2 = 0
 is_paused = False
 ball_speed_multiplier = 1.0
+is_ball_held = True
 
 # Function to update the ball position
 def update_ball():
     global ball_x, ball_y, ball_dx, ball_dy, score1, score2
 
-    # Update ball position
-    ball_x += int(ball_dx * ball_speed_multiplier)
-    ball_y += int(ball_dy * ball_speed_multiplier)
+    if not is_ball_held:
+        # Update ball position
+        ball_x += int(ball_dx * ball_speed_multiplier)
+        ball_y += int(ball_dy * ball_speed_multiplier)
 
-    # Check collision with paddles
-    if ball_x <= PADDLE_WIDTH and paddle1_y <= ball_y <= paddle1_y + PADDLE_HEIGHT:
-        ball_dx = BALL_SPEED
-    elif ball_x >= WIDTH - PADDLE_WIDTH - BALL_RADIUS and paddle2_y <= ball_y <= paddle2_y + PADDLE_HEIGHT:
-        ball_dx = -BALL_SPEED
+        # Check collision with paddles
+        if ball_x <= PADDLE_WIDTH and paddle1_y <= ball_y <= paddle1_y + PADDLE_HEIGHT:
+            ball_dx = BALL_SPEED
+        elif ball_x >= WIDTH - PADDLE_WIDTH - BALL_RADIUS and paddle2_y <= ball_y <= paddle2_y + PADDLE_HEIGHT:
+            ball_dx = -BALL_SPEED
 
-    # Check collision with walls
-    if ball_y <= 0 or ball_y >= HEIGHT - BALL_RADIUS:
-        ball_dy *= -1
+        # Check collision with walls
+        if ball_y <= 0 or ball_y >= HEIGHT - BALL_RADIUS:
+            ball_dy *= -1
 
-    # Check if ball missed the paddles
-    if ball_x < 0:
-        score2 += 1
-        reset_ball()
-    elif ball_x > WIDTH:
-        score1 += 1
-        reset_ball()
+        # Check if ball missed the paddles
+        if ball_x < 0:
+            score2 += 1
+            reset_ball()
+        elif ball_x > WIDTH:
+            score1 += 1
+            reset_ball()
 
 # Function to reset the ball position
 def reset_ball():
@@ -106,6 +108,14 @@ def on_key_release(event):
         paddle2_dy = 0
 
 
+def start_ball():
+    global is_ball_held
+
+    if is_ball_held:
+        is_ball_held = False
+        reset_ball()
+
+
 # Function to update the game state
 def update_game():
     if not is_paused:
@@ -130,6 +140,11 @@ def draw_objects():
     canvas.create_text(WIDTH // 2 - 50, 50, text=f"Player 1: {score1}", fill="white")
     canvas.create_text(WIDTH // 2 + 50, 50, text=f"Player 2: {score2}", fill="white")
 
+    # Draw instructions
+    canvas.create_text(WIDTH // 2, HEIGHT - 20, text="Press 'Right' to speed up", fill="white")
+    canvas.create_text(WIDTH // 2, HEIGHT - 40, text="Press 'Left' to speed down", fill="white")
+    canvas.create_text(WIDTH // 2, HEIGHT - 60, text="Press 'P' to pause/unpause", fill="white")
+
 
 # Create the tkinter window
 window = tk.Tk()
@@ -138,6 +153,10 @@ window.title("Ping Pong Game")
 # Create the canvas for drawing
 canvas = tk.Canvas(window, width=WIDTH, height=HEIGHT, bg="black")
 canvas.pack()
+
+# Create the "Start" button
+start_button = tk.Button(window, text="Start", command=start_ball)
+start_button.pack()
 
 # Bind key events
 window.bind("<KeyPress>", on_key_press)
